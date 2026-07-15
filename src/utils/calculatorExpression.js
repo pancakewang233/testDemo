@@ -1,5 +1,5 @@
 function appendToken(expression, token) {
-  return String(expression || '') + String(token || '');
+  return String(expression == null ? '' : expression) + String(token == null ? '' : token);
 }
 
 function backspace(expression) {
@@ -11,7 +11,7 @@ function clearExpression() {
 }
 
 function getSubmittableExpression(expression) {
-  return String(expression || '').trim();
+  return String(expression == null ? '' : expression).trim();
 }
 
 function formatCalculatorResponse(payload) {
