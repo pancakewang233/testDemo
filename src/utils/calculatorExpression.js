@@ -26,6 +26,26 @@ function formatCalculatorResponse(payload) {
   return JSON.stringify(payload, null, 2);
 }
 
+async function readCalculatorResponse(response) {
+  let payload;
+
+  try {
+    payload = await response.json();
+  } catch (error) {
+    if (!response.ok) {
+      throw new Error(`请求失败（HTTP ${response.status}）`);
+    }
+
+    throw new Error('响应格式错误');
+  }
+
+  if (!response.ok) {
+    throw new Error(payload && payload.message ? payload.message : `请求失败（HTTP ${response.status}）`);
+  }
+
+  return formatCalculatorResponse(payload);
+}
+
 module.exports = {
   appendToken,
   backspace,
@@ -33,4 +53,5 @@ module.exports = {
   getSubmittableExpression,
   createRequestBody,
   formatCalculatorResponse,
+  readCalculatorResponse,
 };

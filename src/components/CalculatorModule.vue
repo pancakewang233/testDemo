@@ -6,8 +6,12 @@
         <span class="calculator-hint">输入表达式后提交计算</span>
       </div>
 
-      <div class="calculator-display" aria-live="polite">
-        {{ expression || '0' }}
+      <div
+        class="calculator-display"
+        aria-live="polite"
+        :aria-label="expression ? '当前表达式：' + expression : '表达式为空，请输入表达式'"
+      >
+        {{ expression || '请输入表达式' }}
       </div>
 
       <div class="calculator-keyboard">
@@ -128,13 +132,7 @@ export default {
           },
           body: JSON.stringify(calculatorExpression.createRequestBody(expression, REQUEST_FIELD)),
         });
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload && payload.message ? payload.message : `请求失败（HTTP ${response.status}）`);
-        }
-
-        this.resultText = calculatorExpression.formatCalculatorResponse(payload);
+        this.resultText = await calculatorExpression.readCalculatorResponse(response);
       } catch (error) {
         this.requestError = error && error.message ? error.message : '请求失败';
         this.$message.error(this.requestError);
