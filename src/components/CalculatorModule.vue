@@ -12,12 +12,12 @@
 
       <div class="calculator-keyboard">
         <el-button
-          v-for="token in functionKeys"
-          :key="`function-${token}`"
+          v-for="key in functionKeys"
+          :key="`function-${key.token}`"
           size="small"
-          @click="appendKey(token)"
+          @click="appendKey(key.token)"
         >
-          {{ token }}
+          {{ key.label }}
         </el-button>
         <el-button
           v-for="token in numberKeys"
@@ -77,7 +77,18 @@ export default {
       resultText: '',
       requestError: '',
       isSubmitting: false,
-      functionKeys: ['ln(', 'log(', '^', 'sqrt(', 'exp(', 'sin(', 'cos(', 'tan(', 'abs(', 'round('],
+      functionKeys: [
+        { label: 'ln', token: 'ln(' },
+        { label: 'log', token: 'log(' },
+        { label: 'xʸ', token: '^' },
+        { label: '√', token: 'sqrt(' },
+        { label: 'eˣ', token: 'exp(' },
+        { label: 'sin', token: 'sin(' },
+        { label: 'cos', token: 'cos(' },
+        { label: 'tan', token: 'tan(' },
+        { label: 'abs', token: 'abs(' },
+        { label: 'round', token: 'round(' },
+      ],
       numberKeys: [7, 8, 9, 4, 5, 6, 1, 2, 3, 0, '.', '(', ')'],
     };
   },
@@ -120,7 +131,7 @@ export default {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload.message || `请求失败（HTTP ${response.status}）`);
+          throw new Error(payload && payload.message ? payload.message : `请求失败（HTTP ${response.status}）`);
         }
 
         this.resultText = calculatorExpression.formatCalculatorResponse(payload);
