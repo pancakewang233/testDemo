@@ -5,6 +5,7 @@ const {
   clearExpression,
   getSubmittableExpression,
   formatCalculatorResponse,
+  createRequestBody,
 } = require('../src/utils/calculatorExpression');
 
 assert.strictEqual(appendToken('', 'ln('), 'ln(');
@@ -17,6 +18,7 @@ assert.strictEqual(clearExpression('ln(2)'), '');
 assert.strictEqual(getSubmittableExpression('  ln(2)  '), 'ln(2)');
 assert.strictEqual(getSubmittableExpression('   '), '');
 assert.strictEqual(getSubmittableExpression(0), '0');
+assert.deepStrictEqual(createRequestBody('  sin(0) + sqrt(9)  ', 'expression'), { expression: 'sin(0) + sqrt(9)' });
 assert.strictEqual(formatCalculatorResponse({ result: 8 }), '8');
 assert.strictEqual(formatCalculatorResponse({ value: 8 }), '{\n  "value": 8\n}');
 

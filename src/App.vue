@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container" :class="{ 'is-wide-layout': activeModule === 'NewModule' }">
+  <div class="app-container" :class="{ 'is-wide-layout': activeModule === 'NewModule' || activeModule === 'CalculatorModule' }">
     <div class="module-select-bar">
       <el-select v-model="activeModule" placeholder="请选择模块" class="module-select">
         <el-option
@@ -23,6 +23,7 @@
       <EChartsModule v-if="activeModule === 'EChartsModule'" />
       <ChartTreeModule v-if="activeModule === 'ChartTreeModule'" />
       <PoliticalAnalysisModule v-if="activeModule === 'PoliticalAnalysisModule'" />
+      <CalculatorModule v-if="activeModule === 'CalculatorModule'" />
     </div>
   </div>
 </template>
@@ -40,6 +41,7 @@ import DataReportModule from "./components/DataReportModule.vue";
 import EChartsModule from "./components/EChartsModule.vue";
 import ChartTreeModule from "./components/ChartTreeModule.vue";
 import PoliticalAnalysisModule from "./components/PoliticalAnalysisModule.vue";
+const CalculatorModule = () => import('./components/CalculatorModule.vue');
 export default {
   name: 'App',
   components: {
@@ -55,6 +57,7 @@ export default {
     EChartsModule,
     ChartTreeModule,
     PoliticalAnalysisModule,
+    CalculatorModule,
   },
   data() {
     return {
@@ -72,6 +75,7 @@ export default {
         { label: 'ECharts 模块', value: 'EChartsModule' },
         { label: '指标树图表模块', value: 'ChartTreeModule' },
         { label: '政治生态智能分析', value: 'PoliticalAnalysisModule' },
+        { label: '函数计算器', value: 'CalculatorModule' },
       ],
       route: '/',
       demoMenu: [

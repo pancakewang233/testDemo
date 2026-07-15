@@ -14,6 +14,10 @@ function getSubmittableExpression(expression) {
   return String(expression == null ? '' : expression).trim();
 }
 
+function createRequestBody(expression, field) {
+  return { [field]: getSubmittableExpression(expression) };
+}
+
 function formatCalculatorResponse(payload) {
   if (payload && Object.prototype.hasOwnProperty.call(payload, 'result')) {
     return String(payload.result);
@@ -27,5 +31,6 @@ module.exports = {
   backspace,
   clearExpression,
   getSubmittableExpression,
+  createRequestBody,
   formatCalculatorResponse,
 };
