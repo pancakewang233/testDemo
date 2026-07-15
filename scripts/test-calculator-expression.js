@@ -1,5 +1,6 @@
 const assert = require('assert');
 const fs = require('fs');
+const vm = require('vm');
 const {
   appendToken,
   backspace,
@@ -9,6 +10,49 @@ const {
   createRequestBody,
   readCalculatorResponse,
 } = require('../src/utils/calculatorExpression');
+
+let mockFetch;
+
+function loadCalculatorModule() {
+  const calculatorModuleSource = fs.readFileSync(require.resolve('../src/components/CalculatorModule.vue'), 'utf8');
+  const scriptMatch = calculatorModuleSource.match(/<script>([\s\S]*?)<\/script>/);
+  assert.ok(scriptMatch, 'CalculatorModule.vue must contain a script block');
+
+  const componentModule = { exports: {} };
+  vm.runInNewContext(scriptMatch[1].replace('export default', 'module.exports ='), {
+    module: componentModule,
+    exports: componentModule.exports,
+    require(request) {
+      if (request === '../utils/calculatorExpression') {
+        return require('../src/utils/calculatorExpression');
+      }
+
+      throw new Error(`Unexpected CalculatorModule dependency: ${request}`);
+    },
+    fetch: (...args) => mockFetch(...args),
+  });
+
+  return componentModule.exports;
+}
+
+function createCalculatorInstance(componentOptions) {
+  const messages = { warnings: [], errors: [] };
+  const instance = componentOptions.data();
+
+  instance.$message = {
+    warning(message) {
+      messages.warnings.push(message);
+    },
+    error(message) {
+      messages.errors.push(message);
+    },
+  };
+  Object.keys(componentOptions.methods).forEach((methodName) => {
+    instance[methodName] = componentOptions.methods[methodName].bind(instance);
+  });
+
+  return { instance, messages };
+}
 
 async function run() {
   assert.strictEqual(appendToken('', 'ln('), 'ln(');
@@ -51,10 +95,46 @@ async function run() {
     json: async () => { throw new Error('invalid json'); },
   }), { message: '请求失败（HTTP 502）' });
 
-  const calculatorModuleSource = fs.readFileSync(require.resolve('../src/components/CalculatorModule.vue'), 'utf8');
-  assert.ok(calculatorModuleSource.includes("{{ expression || '请输入表达式' }}"));
-  assert.ok(calculatorModuleSource.includes('表达式为空，请输入表达式'));
-  assert.ok(calculatorModuleSource.includes('readCalculatorResponse(response)'));
+  const calculatorModule = loadCalculatorModule();
+  const requestCalls = [];
+  mockFetch = async (url, options) => {
+    requestCalls.push({ url, options });
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ result: 8 }),
+    };
+  };
+  const successfulRequest = createCalculatorInstance(calculatorModule);
+  successfulRequest.instance.expression = 'ln(2)';
+  await successfulRequest.instance.submitExpression();
+  assert.strictEqual(requestCalls.length, 1);
+  assert.strictEqual(requestCalls[0].url, '/api/calculator/expressions');
+  assert.strictEqual(requestCalls[0].options.method, 'POST');
+  assert.deepStrictEqual(JSON.parse(requestCalls[0].options.body), { expression: 'ln(2)' });
+  assert.strictEqual(successfulRequest.instance.resultText, '8');
+  assert.strictEqual(successfulRequest.instance.requestError, '');
+  assert.strictEqual(successfulRequest.instance.isSubmitting, false);
+  assert.deepStrictEqual(successfulRequest.messages.errors, []);
+
+  mockFetch = async () => { throw new Error('网络不可用'); };
+  const networkFailure = createCalculatorInstance(calculatorModule);
+  networkFailure.instance.expression = '2^3';
+  await networkFailure.instance.submitExpression();
+  assert.strictEqual(networkFailure.instance.expression, '2^3');
+  assert.strictEqual(networkFailure.instance.requestError, '网络不可用');
+  assert.strictEqual(networkFailure.instance.isSubmitting, false);
+  assert.deepStrictEqual(networkFailure.messages.errors, ['网络不可用']);
+
+  let emptyExpressionFetchCalls = 0;
+  mockFetch = async () => {
+    emptyExpressionFetchCalls += 1;
+  };
+  const emptyExpression = createCalculatorInstance(calculatorModule);
+  emptyExpression.instance.expression = '   ';
+  await emptyExpression.instance.submitExpression();
+  assert.strictEqual(emptyExpressionFetchCalls, 0);
+  assert.deepStrictEqual(emptyExpression.messages.warnings, ['请先输入表达式']);
 
   console.log('calculator expression tests passed');
 }
