@@ -6,22 +6,22 @@
         <span class="calculator-hint">输入表达式后提交计算</span>
       </div>
 
-      <div
-        class="calculator-display"
+      <div  
+        class="calculator-display"  
         aria-live="polite"
         :aria-label="expression ? '当前表达式：' + expression : '表达式为空，请输入表达式'"
       >
-        {{ expression || '请输入表达式' }}
+        {{ expression || '请输入表达式' }}  
       </div>
-
+    
       <div class="calculator-keyboard">
-        <el-button
-          v-for="key in functionKeys"
+        <el-button      
+          v-for="key in functionKeys"        
           :key="`function-${key.token}`"
           size="small"
           @click="appendKey(key.token)"
         >
-          {{ key.label }}
+          {{ key.label }}  
         </el-button>
         <el-button
           v-for="token in numberKeys"
@@ -31,7 +31,7 @@
         >
           {{ token }}
         </el-button>
-        <el-button size="small" @click="backspaceExpression">退格</el-button>
+        <el-button size="small" @click="backspaceExpression">退格</el-button>    
         <el-button size="small" @click="clearAll">清空</el-button>
         <el-button
           type="primary"
@@ -64,9 +64,9 @@
         show-icon
       />
     </el-card>
-  </div>
+  </div>  
 </template>
-
+  
 <script>
 const calculatorExpression = require('../utils/calculatorExpression');
 
